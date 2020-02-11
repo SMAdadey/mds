@@ -1,29 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Created: Tuesday Feb 11, 2019
+Created: Tuesday Feb 11, 2020
 
 @author: Kevin Esoh
 """
 
-import sys,os
+import sys,os,os.path
 import urllib.request as ur
 from Bio.Blast import NCBIWWW as ncbiweb
 from Bio.Blast import NCBIXML as ncbiparser
 
-#--- load query sequence
-s = 'ocrl_mt_prot.fasta'
-seq = open(s,"r").read()
-
-#--- open file to write out blast xml results
+# #--- load query sequence
+# s = 'ocrl_mt_prot.fasta'
+# seq = open(s,"r").read()
+# 
+# #--- open file to write out blast xml results
 outfile = "blast_result.xml"
-blast_result = open(outfile, "w+")
-
-#--- blast search
-blast_handle = ncbiweb.qblast(program="blastp", database="pdbaa", sequence=seq, service="psi", hitlist_size=10, expect=1)
-blast_hits = blast_handle.read()
-blast_result.write(blast_hits)
-blast_result.close()
+# blast_result = open(outfile, "w+")
+# 
+# #--- blast search
+# blast_handle = ncbiweb.qblast(program="blastp", database="pdbaa", sequence=seq, service="psi", hitlist_size=20) # expect=10
+# blast_hits = blast_handle.read()
+# blast_result.write(blast_hits)
+# blast_result.close()
 
 #--- parse blast results
 blast_hits = ncbiparser.parse(open(outfile))    # blast_hits is a generator containing records
@@ -42,14 +42,16 @@ for record in blast_hits:
        pdb_acclib.update(acclib)
        pdb_input.append("%s.pdb" % acc_base)
 print("<<<< >>>>")
-print("PDB INPUT: %s\n" % pdb_input)
+print("PDB files: %s\n" % pdb_input)
 #print(pdb_acclib['4cmn'])
 
 #--- download PDB coordinate files
+print("Fetching pdb files...")
 for acc in pdb_input:
-    print("Fetching pdb files...")    
-    ur.urlretrieve("http://files.rcsb.org/download/%s" % acc, acc)
-    print("Done fetching pdb files!")
-    print("")
-
-
+    if os.path.exists(acc):
+        print("%s already exists! Skipping..." % acc)
+        continue
+    else :
+        ur.urlretrieve("http://files.rcsb.org/download/%s" % acc, acc)    
+print("")
+print("Done fetching pdb files!")
