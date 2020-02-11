@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Created: Tuesday Feb 11, 2019
+
+@author: Kevin Esoh
+"""
 
 import sys,os
 import urllib.request as ur
