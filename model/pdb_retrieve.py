@@ -11,17 +11,18 @@ import urllib.request as ur
 from Bio.Blast import NCBIWWW as ncbiweb
 from Bio.Blast import NCBIXML as ncbiparser
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 7:
     #raise ValueError("Please provide a PDB accession list, one per line in capital letters with an under separating the chain (e.g. 4CMN_A)")
-    print("Usage: %s [-s seq_file] [-o out_file]\n" % sys.argv[0])
+    print("Usage: %s [-s seq_file] [-o out_file] [-n num_seq]\n" % sys.argv[0])
     sys.exit(2)
 def main(argv):
    #global infile 
    #global outfile
    infile = ''
    outfile = ''
+   nseq = ''
    try:
-       opts, args = getopt.getopt(argv,"hs:o:",["seqfile=","outfile="])
+       opts, args = getopt.getopt(argv,"hs:o:n:",["seqfile=","outfile=","nseq="])
    except getopt.GetoptError:
       print('pdb_retrieve.py -s <seqlist> -o <out_file>')
       sys.exit(2)
@@ -36,6 +37,9 @@ def main(argv):
          infile = arg
       elif opt in ("-o", "--outfile"):
          outfile = arg
+      elif opt in ("-n", "--nseq"):
+         nseq = int(arg)
+
 
    print('Input file is "', infile)
 
@@ -49,7 +53,7 @@ def main(argv):
     
    #--- blast search
    print("BLAST search running...")
-   blast_handle = ncbiweb.qblast(program="blastp", database="pdbaa", sequence=seq, service="psi", hitlist_size=20) # expect=10
+   blast_handle = ncbiweb.qblast(program="blastp", database="pdbaa", sequence=seq, service="psi", hitlist_size=nseq) # expect=10
    blast_hits = blast_handle.read()
    blast_result.write(blast_hits)
    blast_result.close()
