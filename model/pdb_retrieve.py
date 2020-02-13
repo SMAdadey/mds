@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Created: Tuesday Feb 11, 2020
@@ -14,6 +14,13 @@ from Bio.Blast import NCBIXML as ncbiparser
 if len(sys.argv) != 7:
     #raise ValueError("Please provide a PDB accession list, one per line in capital letters with an under separating the chain (e.g. 4CMN_A)")
     print("Usage: %s [-s seq_file] [-o out_file] [-n num_seq]\n" % sys.argv[0])
+    usg = """Evaluate Models
+        
+        -s,--seqfile <str>      :Fasta sequence file to perform BLASTp on (NB: Service use is PSI-BLAST)
+        -o,--outfile <str>      :File name PREFIX for the BLAST results in XML format (e.g. blast_result)
+        -n,--nseq    <str>      :Number of BLAST hits to return (e.g. 10)
+    """
+    print(usg)
     sys.exit(2)
 def main(argv):
    #global infile 
@@ -40,8 +47,16 @@ def main(argv):
       elif opt in ("-n", "--nseq"):
          nseq = int(arg)
 
-
-   print('Input file is "', infile)
+   if outfile.endswith(".xml"):
+       outfile = outfile.replace(".xml","")
+   pdbout = "%s.xml" % outfile
+   pdblist = "%s.acc" % outfile
+   print("=================================================================")
+   print('Query                                    : %s' % infile)
+   print('Number of hits to return                 : %s' % nseq)
+   print('Results will be written to               : %s' % pdbout)
+   print('PDB accession list will be written to    : %s' % pdblist)
+   print("=================================================================")
 
    #--- load query sequence
    # s = 'ocrl_mt_prot.fasta'
@@ -49,7 +64,7 @@ def main(argv):
     
    # #--- open file to write out blast xml results
    # outfile = "blast_result.xml"
-   blast_result = open(outfile, "w+")
+   blast_result = open(pdbout, "w")
     
    #--- blast search
    print("BLAST search running...")
@@ -60,14 +75,14 @@ def main(argv):
    print("BLAST completed successful!")
    
    #--- parse blast results
-   blast_hits = ncbiparser.parse(open(outfile))    # blast_hits is a generator containing records
+   blast_hits = ncbiparser.parse(open(pdbout))    # blast_hits is a generator containing records
    
    hit_acc = []    # get accessions
    pdb_input = []   # make PDB input from accessions
    acclib = {}
    pdb_acclib = {} # make a dict of PDB accessions and their chains
    acclist = []
-   acc_file = open('blast_result.acc','w+')
+   acc_file = open(pdblist,'w')
    
    #--------------------- NEW ------- NEW ----------- NEW -------------------
    hits_acc = []
