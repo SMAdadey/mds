@@ -4,25 +4,34 @@ import sys,os,getopt
 from modeller import *
 from modeller.automodel import *
 
-if len(sys.argv) != 7:
+if len(sys.argv) != 9:
     #raise ValueError("Please provide a PDB accession list, one per line in capital letters with an under separating the chain (e.g. 4CMN_A)")
-    print("Usage: %s [-p pdb_acc_list] [-s pir_seq_file] [-n numb_templates]\n" % sys.argv[0])
+    print("Usage: %s [-p pdb_acc_list] [-s seq_pir_file] [-n numb_templates] [-m num_models]\n" % sys.argv[0])
+    usg = """Build Models
+        
+        -p,--pdbfile   <str>      :PDB accessions list (e.g. blast_result.acc)
+        -s,--pirfile   <str>      :Your sequence file in PIR format (e.g. gjb4.ali)
+        -n,--ntemp     <int>      :Number of templates to use
+        -m,--nmodel    <int>      :Number of models to build
+    """
+    print(usg)
     sys.exit(2)
 def main(argv):
    infile = ''
-   pirfile = ''
    ntemp = ''
+   pirfile = ''
+   nmod = ''
    try:
-       opts, args = getopt.getopt(argv,"hp:s:n:",["pdbfile=","pirfile=","ntemp="])
+       opts, args = getopt.getopt(argv,"hp:s:n:m:",["pdbfile=","pirfile=","ntemp=","nmodel="])
    except getopt.GetoptError:
-      print('salign.py -p <pdbfile_list> -n <num_templates>')
+      print('%s -p <pdbfile_list> -s <seq_pir_file> -n <num_templates> -m <num_models>' % sys.argv[0])
       sys.exit(2)
    for opt, arg in opts:
       if opt in ('-h','--help'):
-         print('salign.py -p <pdbfile_list> -n <num_templates>')
+         print('%s -p <pdbfile_list> -s <seq_pir_file> -n <num_templates> -m <num_models>' % sys.argv[0])
          sys.exit()
       elif opt in (" ", ""):
-         print('salign.py -p <pdbfile_list> -n <num_templates>')
+         print('%s -p <pdbfile_list> -s <seq_pir_file> -n <num_templates> -m <num_models>' % sys.argv[0])
          sys.exit()
       elif opt in ("-p", "--pdbfile"):
          infile = arg
@@ -30,6 +39,8 @@ def main(argv):
          pirfile = arg
       elif opt in ("-n", "--ntemp"):
          ntemp = int(arg)
+      elif opt in ("-m", "--nmodel"):
+         nmod = int(arg)
 
    print('Input file is "', infile)
    pir_base = pirfile.replace(".ali","")
@@ -40,7 +51,8 @@ def main(argv):
    accs_dic = {}
    for acc in accs:
        ac = acc.replace("_","")
-       ac_base = ac[0]
+       acc_b = acc.split("_")
+       ac_base = acc_b[0]
        ac_dic = {ac_base:ac}
        accs_dic.update(ac_dic)
        accs_list.append(ac)
@@ -58,7 +70,7 @@ def main(argv):
    #              '1i9yA', '3nr8A', '5okmA')
    
    a.starting_model = 1
-   a.ending_model = 50
+   a.ending_model = nmod
    a.make()
 
 if __name__ == "__main__":
