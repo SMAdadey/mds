@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#PBS -l select=1:ncpus=24
+#PBS -l walltime=48:00:00
+#PBS -q smp
+#PBS -P CBBI1243
+#PBS -o /mnt/lustre/groups/CBBI1243/KEVIN/git/mds/modrefine/stdout.txt
+#PBS -e /mnt/lustre/groups/CBBI1243/KEVIN/git/mds/modrefine/stderr.txt
+#PBS -N GalRefine
+#PBS -M kevin.esoh@students.jkuat.ac.ke
+#PBS -m b
+
+
+cd /mnt/lustre/groups/CBBI1243/KEVIN/git/mds/modrefine/
+
+GalaxyRefine -p OCRL.B99990019.pdb -t ocrlWt -o 10
+
+#bash galaxRefine.sh -n ocrlWt -p ../OCRL.B99990019.pdb
