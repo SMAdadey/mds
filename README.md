@@ -24,6 +24,6 @@ Execute commands
 ```
 pymol -c -d 'load 6VYB.pdb; indicate c. A; save 6VYB_chainA.pdb'
 ```
- : This loads a pdb coordinate file containing mltiple chains, selects the 'A' chain, and saves it
+This loads a pdb coordinate file containing mltiple chains, selects the 'A' chain, and saves it
 
 
