@@ -26,4 +26,15 @@ pymol -c -d 'load 6VYB.pdb; indicate c. A; save 6VYB_chainA.pdb'
 ```
 This loads a pdb coordinate file containing mltiple chains, selects the 'A' chain, and saves it
 
+Critical Assessment of Structure Prediction
+---
+Keeping up with [CASP](https://www.predictioncenter.org/index.cgi)
+
+Protein Structure Prediction and Analysis
+---
+- [FEIGLAB](http://feig.bch.msu.edu/web/research/protein-structure-refinement/)
+  * [MMTSB](http://feig.bch.msu.edu/mmtsb/Main_Page)
+  * 
+- [RaptorX](http://raptorx.uchicago.edu/)
+- [I-TASSER](https://zhanglab.ccmb.med.umich.edu/I-TASSER/)
 
