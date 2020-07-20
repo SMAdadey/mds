@@ -38,3 +38,6 @@ Protein Structure Prediction and Analysis
 - [RaptorX](http://raptorx.uchicago.edu/)
 - [I-TASSER](https://zhanglab.ccmb.med.umich.edu/I-TASSER/)
 - [ModRefine](https://zhanglab.ccmb.med.umich.edu/ModRefiner/)
+- Residue contact prediction:
+   * [TripletRes](https://zhanglab.ccmb.med.umich.edu/TripletRes/)
+   * [RaptorX-Contact](http://raptorx.uchicago.edu/ContactMap/)
