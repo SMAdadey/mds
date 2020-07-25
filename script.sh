@@ -296,7 +296,7 @@ gromMDS() {
       
       
       # Generate plots
-      Rscript /mnt/lustre/groups/CBBI1243/KEVIN/mds/plot.R $Epet $Ett $Eprt $Edt rmsd.txt rmsd_xtal.txt gyrate.txt gyrate.txt
+      Rscript ${HOME}/Git/mds/mds_plot.R $Epet $Ett $Eprt $Edt rmsd.txt rmsd_xtal.txt gyrate.txt gyrate.txt
       
    elif [[ $# == 2 && $res == "hpc" && $fe == "pdb" ]]; then 
       qsub_gen() {
@@ -385,7 +385,7 @@ grep -v -e \"#\" -e \"@\" gyrate.xvg > gyrate.txt
 
 
 # Generate plots
-Rscript /mnt/lustre/groups/CBBI1243/KEVIN/mds/plot.R $Epet $Ett $Eprt $Edt rmsd.txt rmsd_xtal.txt gyrate.txt gyrate.txt
+Rscript ${HOME}/Git/mds/mds_plot.R $Epet $Ett $Eprt $Edt rmsd.txt rmsd_xtal.txt gyrate.txt gyrate.txt
       """
       }
       qsub_gen > $fb.qsub
