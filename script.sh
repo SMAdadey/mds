@@ -246,7 +246,7 @@ gromMDS() {
       grep -v "HOH" $f > $fc
       
       # Create required files; topology, position restraint, post-processed structure
-      echo 15 | gmx pdb2gmx -f $fc -o $fp -water spce 
+      echo 5 | gmx pdb2gmx -f $fc -o $fp -water spce 	 # AMBER99SB ff
       
       # Define unit cell & add solvent
       gmx editconf -f $fp -o $fn -c -d 1.0 -bt cubic
@@ -338,7 +338,7 @@ cd ${wd}
 grep -v \"HOH\" $f > $fc
 
 # Create required files; topology, position restraint, post-processed structure
-echo 15 | gmx_mpi pdb2gmx -f $fc -o $fp -water spce
+echo 5 | gmx_mpi pdb2gmx -f $fc -o $fp -water spce # AMBER99SB ff
 
 # Define unit cell & add solvent
 gmx_mpi editconf -f $fp -o $fn -c -d 1.0 -bt cubic
