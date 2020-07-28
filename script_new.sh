@@ -368,13 +368,13 @@ Rscript ${HOME}/Git/mds/mds_plot.R $Epet $Ett $Eprt $Edt rmsd.txt rmsd_xtal.txt 
 function nhrestart() {
 echo -e """
 # Restart Production MD
-time ${mdr} -s md_0_1 -v -ntomp ${NP} -cpi md_0_1 #gmx mdrun""" > nhrestart
+mpirun -np 1 gmx mdrun -v -cpi md_0_1""" > nhrestart
 }
 
 function hrestart() {
 echo -e """
 # Restart Production MD
-time ${mdr} -s md_0_1 -v -maxh 95 -ntomp ${NP} -cpi md_0_1 #gmx mdrun""" > hrestart
+time \${mdr} -s md_0_1 -v -maxh 95 -ntomp \${NP} -cpi md_0_1 #gmx mdrun""" > hrestart
 }
 
 function msg() {
@@ -405,9 +405,9 @@ make_params; qsub_prep; nem_md; em_md; nhrestart; hrestart; analysis; plot;
    elif [[ $# == 2 && $res == "nhrestart" && $fe == "pdb" ]]; then
         make_params
         echo -e "#!/usr/bin/env bash\nmdr=\"mpirun -np 2 gmx mdrun\"" > ${fb}.nhpc.restart.sh
-        cat nhrestart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.nhpc.restart.sh
-        chmod 755 ${fb}.nhpc.restart.sh
-        #./${fb}_nhpc_restart.sh
+        cat nhrestart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.restart.sh
+        chmod 755 ${fb}.restart.sh
+        #./${fb}.restart.sh
    elif [[ $# == 2 && $res == "hpc" && $fe == "pdb" ]]; then
         make_params
         cat qsub_prep em_md analysis plot > ${fb}.hpc.qsub
@@ -415,9 +415,9 @@ make_params; qsub_prep; nem_md; em_md; nhrestart; hrestart; analysis; plot;
         #qsub ${fb}_hpc.qsub
    elif [[ $# == 2 && $res == "hrestart" && $fe == "pdb" ]]; then
         make_params
-        cat hrestart analysis plot > ${fb}.hpc.hrestart.qsub
+        cat qsub_prep hrestart analysis plot > ${fb}.hrestart.qsub
 	msg
-        #qsub ${fb}.hpc.hrestart.qsub
+        #qsub ${fb}.hrestart.qsub
    fi
    rm qsub_prep em_md nem_md nhrestart hrestart analysis plot
 
