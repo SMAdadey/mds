@@ -97,7 +97,7 @@ ansis_plot <- function(rmsda=first_rmsd_file,
       plot(ra$time, ra$rmsd, 
            main="RMSD",
       	   type="l",
-           ylim=c(0, 1),
+           ylim=c(0.1, 0.6),
       	   xlab="Time (ns)",
       	   ylab="RMSD (nm)")
       lines(rb$time, rb$rmsd,col="red")
@@ -107,7 +107,7 @@ ansis_plot <- function(rmsda=first_rmsd_file,
            main="Radius of Gyration",
            xlab="Time (ns)",
            ylab="Rg (nm)",
-	   ylim=c(0, 3),
+	   ylim=c(1.5, 2.5),
 	   type="l")
       lines(gb$t_ns, gb$Rt,col="red")
       legend("bottomright", legend=c("Wild Type","Mutant"), col=c("red","black"),pch="-")   
