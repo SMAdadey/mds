@@ -320,19 +320,19 @@ echo 13 | gmx_mpi genion -s ions.tpr -o $fsi -p topol.top -pname NA -nname CL -n
 
 # Energy minimization
 gmx_mpi grompp -f minim.mdp -c $fsi -p topol.top -o em.tpr
-time \${mdr} -v -cpi -maxh 72 -ntomp \${NP} -deffnm em #gmx mdrun
+time \${mdr} -v -cpi -maxh 95 -ntomp \${NP} -deffnm em #gmx mdrun
 echo -e \"Potential\\\n0\" | gmx_mpi energy -f em.edr -o $Epe
 grep -v -e \"#\" -e \"@\" $Epe > $Epet
 
 # Equilibration Phase 1: NVT (Energy and Temperature)
 gmx_mpi grompp -f nvt.mdp -c em.gro -r em.gro -p topol.top -o nvt.tpr
-time \${mdr} -v -maxh 72 -ntomp \${NP} -deffnm nvt #gmx mdrun
+time \${mdr} -v -maxh 95 -ntomp \${NP} -deffnm nvt #gmx mdrun
 echo -e \"Temperature\\\n0\" | gmx_mpi energy -f nvt.edr -o $Et
 grep -v -e \"#\" -e \"@\" $Et > $Ett
 
 # Equilibration Phase 2: NPT (Pressure and Density)
 gmx_mpi grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p topol.top -o npt.tpr
-time \${mdr} -v -maxh 72 -ntomp \${NP} -deffnm npt #gmx mdrun
+time \${mdr} -v -maxh 95 -ntomp \${NP} -deffnm npt #gmx mdrun
 echo -e \"Pressure\\\n0\" | gmx_mpi energy -f npt.edr -o $Epr
 grep -v -e \"#\" -e \"@\" $Epr > $Eprt
 echo -e \"Density\\\n0\" | gmx_mpi energy -f npt.edr -o $Ed
@@ -340,7 +340,7 @@ grep -v -e \"#\" -e \"@\" $Ed > $Edt
 
 # Run Production MD
 gmx_mpi grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_0_1.tpr
-time \${mdr} -v -maxh 72 -ntomp \${NP} -deffnm md_0_1 #gmx mdrun """ > em_md
+time \${mdr} -v -maxh 95 -ntomp \${NP} -deffnm md_0_1 #gmx mdrun """ > em_md
 }
 
 function analysis() {
