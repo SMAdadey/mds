@@ -30,7 +30,7 @@ gromMDS() {
    Epr="${f/.pdb/_pressure.xvg}"; Eprt="${Epr/.xvg/.txt}" # press out files
    Ed="${f/.pdb/_density.xvg}"; Edt="${Ed/.xvg/.txt}" # density out files
    cpt="$fb.cpt" # checkpoint file
-   wd="$(pwd)/"
+   wd="$(pwd)/${fb}_${ff}/"
    # Functions for generating parameter files
    writeIonMdp() {
    	echo """
@@ -381,11 +381,24 @@ time \${mdr} -s md_0_1 -v -maxh 95 -ntomp \${NP} -cpi md_0_1 #gmx mdrun""" > hre
 
 function msg() {
       sleep 1
-      echo -e "\nMolecular Dynamics Parameter (mdp) files created in your current directory!"
-      sleep 1
-      echo -e "Gromacs job created! Please submit with 'qsub ${fb}.${res}.qsub'\n"
+      if [[ ($res == "hpc") || ($res == "hrestart") ]]; then
+          echo -e "\nMolecular Dynamics Parameter (mdp) files created in your current directory!"
+          sleep 1
+          echo -e "Gromacs job created: '${fb}.${ff}.${res}.qsub' Please submit with 'qsub ${fb}.${ff}.${res}.qsub'\n"
+      else
+          echo -e "\nMolecular Dynamics Parameter (mdp) files created in ${fb}_${ff}"
+          sleep 1
+          echo -e "Gromacs job created: '${fb}.${ff}.${res}.sh' currently in ${fb}_${ff}/ Please run with './${fb}.${ff}.${res}.sh'\n"
+      fi
 }
-make_params; qsub_prep; nem_md; em_md; nhrestart; hrestart; analysis; plot; 
+
+function prep_all() { 
+      qsub_prep; nem_md; em_md; nhrestart; hrestart; analysis; plot
+}
+
+function rm_all() {
+      rm qsub_prep em_md nem_md nhrestart hrestart analysis plot
+}
 
    if [[ $# != 4 ]]; then
       echo """
@@ -431,27 +444,32 @@ make_params; qsub_prep; nem_md; em_md; nhrestart; hrestart; analysis; plot;
       echo -e "\nThe input file is not a PDB file! Your file must end with .pdb\n"
 
    elif [[ $# == 4 && $res == "nhpc" && $fe == "pdb" ]]; then
-        make_params
+	mkdir -p ${fb}_${ff}; cp $f ${wd}/; cd $wd
+        make_params; prep_all
         cat nem_md analysis plot | sed 's/gmx_mpi/gmx/g' > ${fb}.nhpc.sh
         chmod 755 ${fb}.nhpc.sh
+	msg; rm_all
 	#./${fb}.nhpc.sh
    elif [[ $# == 4 && $res == "nhrestart" && $fe == "pdb" ]]; then
-        make_params
+        mkdir -p ${fb}_${ff}; cp $f ${wd}/; cd $wd
+        make_params; prep_all
         echo -e "#!/usr/bin/env bash\nmdr=\"mpirun -np 2 gmx mdrun\"" > ${fb}.nhpc.restart.sh
         cat nhrestart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.restart.sh
         chmod 755 ${fb}.restart.sh
+	msg; rm_all
         #./${fb}.restart.sh
    elif [[ $# == 4 && $res == "hpc" && $fe == "pdb" ]]; then
-        make_params
+	mkdir -p ${fb}_${ff}; cp $f ${wd}/; cd ${wd}
+        make_params; prep_all
         cat qsub_prep em_md analysis plot > ${fb}.hpc.qsub
-	msg
+	msg; rm_all
         #qsub ${fb}_hpc.qsub
    elif [[ $# == 4 && $res == "hrestart" && $fe == "pdb" ]]; then
-        make_params
+        mkdir -p ${fb}_${ff}; cp $f ${wd}/; cd ${wd}
+        make_params; prep_all
         cat qsub_prep hrestart analysis plot > ${fb}.hrestart.qsub
-	msg
+	msg; rm_all
         #qsub ${fb}.hrestart.qsub
    fi
-   rm qsub_prep em_md nem_md nhrestart hrestart analysis plot
 
 }
