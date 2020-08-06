@@ -446,30 +446,30 @@ function rm_all() {
    elif [[ $# == 4 && $res == "nhpc" && $fe == "pdb" ]]; then
 	mkdir -p ${fb}_${ff}; cp $f ${wd}/; cd $wd
         make_params; prep_all
-        cat nem_md analysis plot | sed 's/gmx_mpi/gmx/g' > ${fb}.nhpc.sh
-        chmod 755 ${fb}.nhpc.sh
+        cat nem_md analysis plot | sed 's/gmx_mpi/gmx/g' > ${fb}.${ff}.${res}.sh
+        chmod 755 ${fb}.${ff}.${res}.sh
 	msg; rm_all
-	#./${fb}.nhpc.sh
+	#./${fb}.${ff}.${res}.sh
    elif [[ $# == 4 && $res == "nhrestart" && $fe == "pdb" ]]; then
         mkdir -p ${fb}_${ff}; cp $f ${wd}/; cd $wd
         make_params; prep_all
-        echo -e "#!/usr/bin/env bash\nmdr=\"mpirun -np 2 gmx mdrun\"" > ${fb}.nhpc.restart.sh
-        cat nhrestart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.restart.sh
-        chmod 755 ${fb}.restart.sh
+        echo -e "#!/usr/bin/env bash\nmdr=\"mpirun -np 2 gmx mdrun\"" > ${fb}.${ff}.${res}.sh
+        cat nhrestart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.${ff}.${res}.sh
+        chmod 755 ${fb}.${ff}.${res}.sh
 	msg; rm_all
-        #./${fb}.restart.sh
+        #./${fb}.${ff}.${res}.sh
    elif [[ $# == 4 && $res == "hpc" && $fe == "pdb" ]]; then
 	mkdir -p ${fb}_${ff}; cp $f ${wd}/; cd ${wd}
         make_params; prep_all
-        cat qsub_prep em_md analysis plot > ${fb}.hpc.qsub
+        cat qsub_prep em_md analysis plot > ${fb}.${ff}.${res}.qsub
 	msg; rm_all
-        #qsub ${fb}_hpc.qsub
+        #qsub ${fb}.${ff}.${res}.qsub
    elif [[ $# == 4 && $res == "hrestart" && $fe == "pdb" ]]; then
         mkdir -p ${fb}_${ff}; cp $f ${wd}/; cd ${wd}
         make_params; prep_all
-        cat qsub_prep hrestart analysis plot > ${fb}.hrestart.qsub
+        cat qsub_prep hrestart analysis plot > ${fb}.${ff}.${res}.qsub
 	msg; rm_all
-        #qsub ${fb}.hrestart.qsub
+        #qsub ${fb}.${ff}.${res}.qsub
    fi
 
 }
