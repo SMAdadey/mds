@@ -5,6 +5,8 @@ gromMDS() {
 
    res=$1
    f=$2                 # input file
+   ff=$3		# force field
+   nmds=$4		# Number of MD steps: 50000000 ; 2 * 50000000 = 100000 ps (100 ns)
    #fe="$(echo ${f##*.})"   # file extension
    #
    #if [[ $# != 1 ]]; then
@@ -72,7 +74,7 @@ gromMDS() {
    
    writeNvtMdp() {
    echo -e """
-   title                   = AMBER99 $fb NVT equilibration
+   title                   = ${ff} $fb NVT equilibration
    define                  = -DPOSRES  ; position restrain the protein
    ; Run parameters
    integrator              = md        ; leap-frog integrator
@@ -118,7 +120,7 @@ gromMDS() {
    
    writeNptMdp() {
    	echo -e """
-   title                   = AMBER99 $fb NPT equilibration
+   title                   = ${ff} $fb NPT equilibration
    define                  = -DPOSRES  ; position restrain the protein
    ; Run parameters
    integrator              = md        ; leap-frog integrator
@@ -167,10 +169,10 @@ gromMDS() {
    
    writeMdMdp() {
    	echo -e """
-   title                   = AMBER99 $fb NPT equilibration
+   title                   = ${ff} $fb NPT equilibration
    ; Run parameters
    integrator              = md        ; leap-frog integrator
-   nsteps                  = 50000000    ; 2 * 50000000 = 100000 ps (100 ns)
+   nsteps                  = ${nmds}     ; 2 * 50000000 = 100000 ps (100 ns)
    dt                      = 0.002     ; 2 fs
    ; Output control
    nstxout                 = 0         ; suppress bulky .trr file by specifying
@@ -271,10 +273,10 @@ echo -e """#!/usr/bin/env bash
 grep -v \"HOH\" $f > $fc
 
 # Create required files; topology, position restraint, post-processed structure
-echo 5 | gmx pdb2gmx -f $fc -o $fp -water spce 	 # AMBER99SB ff
+gmx pdb2gmx -f $fc -o $fp -water spce -ignh -ff $ff	 # AMBER99SB ff #ignh: ignore H atoms in PDB file
 
 # Define unit cell & add solvent
-gmx editconf -f $fp -o $fn -c -d 1.0 -bt cubic
+gmx editconf -f $fp -o $fn -c -d 1.0 -bt dodecahedron
 gmx solvate -cp $fn -cs spc216.gro -o $fs -p topol.top
 gmx grompp -f ions.mdp -c $fs -p topol.top -o ions.tpr
 echo 13 | gmx genion -s ions.tpr -o $fsi -p topol.top -pname NA -nname CL -neutral
@@ -310,10 +312,10 @@ echo -e """
 grep -v \"HOH\" $f > $fc
 
 # Create required files; topology, position restraint, post-processed structure
-echo 5 | gmx_mpi pdb2gmx -f $fc -o $fp -water spce # AMBER99SB ff
+gmx_mpi pdb2gmx -f $fc -o $fp -water spce -ignh -ff $ff  # AMBER99SB ff
 
 # Define unit cell & add solvent
-gmx_mpi editconf -f $fp -o $fn -c -d 1.0 -bt cubic
+gmx_mpi editconf -f $fp -o $fn -c -d 1.0 -bt dodecahedron
 gmx_mpi solvate -cp $fn -cs spc216.gro -o $fs -p topol.top
 gmx_mpi grompp -f ions.mdp -c $fs -p topol.top -o ions.tpr
 echo 13 | gmx_mpi genion -s ions.tpr -o $fsi -p topol.top -pname NA -nname CL -neutral
@@ -385,35 +387,66 @@ function msg() {
 }
 make_params; qsub_prep; nem_md; em_md; nhrestart; hrestart; analysis; plot; 
 
-   if [[ $# != 2 ]]; then
+   if [[ $# != 4 ]]; then
       echo """
-      Usage: gromMDS <[hpc | hrestart | nhpc | nrestart]> <pdb-file>
+      Usage: gromMDS <[hpc | hrestart | nhpc | nrestart]> <pdb-file> <force-field> <nsteps>
              
              hpc                : Run MDS on HPC
              hrestart           : Restart MDS on HPC
              nhpc               : Run MDS on local terminal or interactively
              nhrestart          : Restart MDS interactively
+	     
+	     pdb-file		: The coordinate file to run MDS for
+	     force-field	: One of several force fields ported to GROMACS
+
+	     ----------------------------------------------------------------------------------------------------------
+		 1: AMBER03 protein, nucleic AMBER94 (Duan et al., J. Comp. Chem. 24, 1999-2012, 2003)
+		 2: AMBER94 force field (Cornell et al., JACS 117, 5179-5197, 1995)
+		 3: AMBER96 protein, nucleic AMBER94 (Kollman et al., Acc. Chem. Res. 29, 461-469, 1996)
+		 4: AMBER99 protein, nucleic AMBER94 (Wang et al., J. Comp. Chem. 21, 1049-1074, 2000)
+		 5: AMBER99SB protein, nucleic AMBER94 (Hornak et al., Proteins 65, 712-725, 2006)
+		 6: AMBER99SB-ILDN protein, nucleic AMBER94 (Lindorff-Larsen et al., Proteins 78, 1950-58, 2010)
+		 7: AMBERGS force field (Garcia & Sanbonmatsu, PNAS 99, 2782-2787, 2002)
+		 8: CHARMM27 all-atom force field (CHARM22 plus CMAP for proteins)
+		 9: CHARMM36 all-atom force field (March 2019)
+		10: GROMOS96 43a1 force field
+		11: GROMOS96 43a2 force field (improved alkane dihedrals)
+		12: GROMOS96 45a3 force field (Schuler JCC 2001 22 1205)
+		13: GROMOS96 53a5 force field (JCC 2004 vol 25 pag 1656)
+		14: GROMOS96 53a6 force field (JCC 2004 vol 25 pag 1656)
+		15: GROMOS96 54a7 force field (Eur. Biophys. J. (2011), 40,, 843-856, DOI: 10.1007/s00249-011-0700-9)
+		16: OPLS-AA/L all-atom force field (2001 aminoacid dihedrals)
+		
+		NB: Case sensitive. Must enter lower case on commandline not upper case.
+		Example:
+		  - OPLS-AA/L = oplsaa
+		  - AMBER99SB = amber99sb
+             ----------------------------------------------------------------------------------------------------------
+
+	     nsteps		: Number of MD steps to run
+	     			  50000000 (50 million) = 2 * 50000000 = 100000 ps = 100 ns
+
       """
-   elif [[ $# == 2 && $fe != "pdb" ]]; then
+   elif [[ $# == 4 && $fe != "pdb" ]]; then
       echo -e "\nThe input file is not a PDB file! Your file must end with .pdb\n"
 
-   elif [[ $# == 2 && $res == "nhpc" && $fe == "pdb" ]]; then
+   elif [[ $# == 4 && $res == "nhpc" && $fe == "pdb" ]]; then
         make_params
         cat nem_md analysis plot | sed 's/gmx_mpi/gmx/g' > ${fb}.nhpc.sh
         chmod 755 ${fb}.nhpc.sh
 	#./${fb}.nhpc.sh
-   elif [[ $# == 2 && $res == "nhrestart" && $fe == "pdb" ]]; then
+   elif [[ $# == 4 && $res == "nhrestart" && $fe == "pdb" ]]; then
         make_params
         echo -e "#!/usr/bin/env bash\nmdr=\"mpirun -np 2 gmx mdrun\"" > ${fb}.nhpc.restart.sh
         cat nhrestart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.restart.sh
         chmod 755 ${fb}.restart.sh
         #./${fb}.restart.sh
-   elif [[ $# == 2 && $res == "hpc" && $fe == "pdb" ]]; then
+   elif [[ $# == 4 && $res == "hpc" && $fe == "pdb" ]]; then
         make_params
         cat qsub_prep em_md analysis plot > ${fb}.hpc.qsub
 	msg
         #qsub ${fb}_hpc.qsub
-   elif [[ $# == 2 && $res == "hrestart" && $fe == "pdb" ]]; then
+   elif [[ $# == 4 && $res == "hrestart" && $fe == "pdb" ]]; then
         make_params
         cat qsub_prep hrestart analysis plot > ${fb}.hrestart.qsub
 	msg
