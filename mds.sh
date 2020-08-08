@@ -240,7 +240,7 @@ echo -e """#!/bin/bash
 #PBS -o ${wd}stdout.txt
 #PBS -e ${wd}stderr.txt
 #PBS -m b
-#PBS -N Gromacs_$fb
+#PBS -N ${fb}.${ff}.${mdel}
 #PBS -M kevin.esoh@students.jkuat.ac.ke
 
 #MODULEPATH=/opt/gridware/bioinformatics/modules:\$MODULEPATH

@@ -96,7 +96,7 @@ ansis_plot <- function(rmsda=first_rmsd_file,
    par(mfrow=c(2,1))
       plot(ra$time, ra$rmsd, 
            main="RMSD",
-           col="black"
+           col="black",
       	   type="l",
            ylim=c(0.15, 0.5),
       	   xlab="Time (ns)",
@@ -109,7 +109,7 @@ ansis_plot <- function(rmsda=first_rmsd_file,
            xlab="Time (ns)",
            ylab="Rg (nm)",
 	   ylim=c(1.7, 2.3),
-	   col="black"
+	   col="black",
 	   type="l")
       lines(gb$t_ns, gb$Rt,col="red")
       legend("bottomright", legend=c("Wild Type","Mutant"), col=c("black","red"),pch="-")   
