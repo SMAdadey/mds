@@ -9,10 +9,12 @@ ra <- args[5]
 rb <- args[6]
 ga <- args[7]
 gb <- args[8]
+ma <- args[9]
+mb <- args[10]
 
 if (length(args) < 1) {
    print("", quote=F)
-   print("Usage: plot.R potener temp press dens rmsda rmsdb gyra gyrb", quote=F)
+   print("Usage: plot.R potener temp press dens rmsda rmsdb gyra gyrb ramaa ramab", quote=F)
    print("", quote=F)
    quit(save="no")
 } else {
@@ -75,22 +77,21 @@ engy_plot <- function(pe=potential_file,
 ansis_plot <- function(rmsda=first_rmsd_file,
 		       rmsdb=second_rmsd_file, 
 		       gyra=first_gyration_file,
-		       gyrb=second_gyration_file) {
+		       gyrb=second_gyration_file,
+		       ramaa=first_ramachandran,
+		       ramab=second_ramachandran) {
 
-   ra <- read.table(rmsda, h=F)
-   colnames(ra) <- c("time","rmsd")
+   ra <- read.table(rmsda, h=F, col.names=c("time","rmsd"))
+   rb <- read.table(rmsdb, h=F, col.names=c("time","rmsd"))
 
-   rb <- read.table(rmsdb, h=F)
-   colnames(rb) <- c("time","rmsd")
-
-   ga <- read.table(gyra, h=F)
-   colnames(ga) <- c("time","Rt","Rx","Ry","Rz")
+   ga <- read.table(gyra, h=F, col.names=c("time","Rt","Rx","Ry","Rz"))
    ga$t_ns <- ga$time/1000
 
-   gb <- read.table(gyrb, h=F)
-   colnames(gb) <- c("time","Rt","Rx","Ry","Rz")
+   gb <- read.table(gyrb, h=F, col.names=c("time","Rt","Rx","Ry","Rz"))
    gb$t_ns <- gb$time/1000
 
+   ma <- read.table(ramaa, h=F, col.names=c("Phi", "Psi", "Residue"))
+   mb <- read.table(ramab, h=F, col.names=c("Phi", "Psi", "Residue"))
 
    png("grom_analysis.png", height=10, width=7, units = "in", points=10, res=200)
    par(mfrow=c(2,1))
@@ -113,9 +114,16 @@ ansis_plot <- function(rmsda=first_rmsd_file,
 	   type="l")
       lines(gb$t_ns, gb$Rt,col="red")
       legend("bottomright", legend=c("Wild Type","Mutant"), col=c("black","red"),pch="-")   
-dev.off()
+   dev.off()
+   
+   png("ramachandran.png", height=6, width=6, units="in", points=10, res=200)
+      plot(ma$Phi, ma$Psi, main="Ramachandran plot", xlab="Phi", ylab="Psi", pch=20)
+      points(mb$Phi, mb$Psi, pch=20, col="red")
+      abline(v=0, h=0, lty=2)
+      legend("bottomright", legend=c("wild type", "mutant"), col=c("black", "red"), pch=20)
+   dev.off()
 }
 
 engy_plot(pe=pe,te=te,pr=pr,de=de)
-ansis_plot(rmsda=ra, rmsdb=rb, gyra=ga, gyrb=gb)
+ansis_plot(rmsda=ra, rmsdb=rb, gyra=ga, gyrb=gb, ramaa=ma, ramab=mb)
 }
