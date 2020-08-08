@@ -8,6 +8,7 @@ gromMDS() {
    f=$(basename $2)           # input file
    ff=$3		# force field
    nmds=$4		# Number of MD steps: 50000000 ; 2 * 50000000 = 100000 ps (100 ns)
+   mdel=$5
    #fe="$(echo ${f##*.})"   # file extension
    #
    #if [[ $# != 1 ]]; then
@@ -272,7 +273,7 @@ echo -e """#!/usr/bin/env bash
 grep -v \"HOH\" $f > $fc
 
 # Create required files; topology, position restraint, post-processed structure
-gmx pdb2gmx -f $fc -o $fp -water spce -ignh -ff $ff	 # AMBER99SB ff #ignh: ignore H atoms in PDB file
+gmx pdb2gmx -f $fc -o $fp -water $mdel -ignh -ff $ff	 # AMBER99SB ff #ignh: ignore H atoms in PDB file
 
 # Define unit cell & add solvent
 gmx editconf -f $fp -o $fn -c -d 1.0 -bt dodecahedron
@@ -311,7 +312,7 @@ echo -e """
 grep -v \"HOH\" $f > $fc
 
 # Create required files; topology, position restraint, post-processed structure
-gmx_mpi pdb2gmx -f $fc -o $fp -water spce -ignh -ff $ff  # AMBER99SB ff
+gmx_mpi pdb2gmx -f $fc -o $fp -water $mdel -ignh -ff $ff  # AMBER99SB ff
 
 # Define unit cell & add solvent
 gmx_mpi editconf -f $fp -o $fn -c -d 1.0 -bt dodecahedron
@@ -399,9 +400,9 @@ function rm_all() {
       rm qsub_prep em_md nem_md nhrestart hrestart analysis plot
 }
 
-   if [[ $# != 4 ]]; then
+   if [[ $# != 5 ]]; then
       echo """
-      Usage: gromMDS <[hpc | hrestart | nhpc | nrestart]> <pdb-file> <force-field> <nsteps>
+      Usage: gromMDS <[hpc | hrestart | nhpc | nrestart]> <pdb-file> <force-field> <nsteps> <water-model>
              
              hpc                : Run MDS on HPC
              hrestart           : Restart MDS on HPC
@@ -437,19 +438,20 @@ function rm_all() {
 
 	     nsteps		: Number of MD steps to run
 	     			  50000000 (50 million) = 2 * 50000000 = 100000 ps = 100 ns
+	     water-model	: Water model to use: select, none, spc, spce, tip3p, tip4p, tip5p, tips3p
 
       """
-   elif [[ $# == 4 && $fe != "pdb" ]]; then
+   elif [[ $# == 5 && $fe != "pdb" ]]; then
       echo -e "\nThe input file is not a PDB file! Your file must end with .pdb\n"
 
-   elif [[ $# == 4 && $res == "nhpc" && $fe == "pdb" ]]; then
+   elif [[ $# == 5 && $res == "nhpc" && $fe == "pdb" ]]; then
 	mkdir -p ${fb}_${ff}; cp $fle ${wd}/; cd $wd
         make_params; prep_all
         cat nem_md analysis plot | sed 's/gmx_mpi/gmx/g' > ${fb}.${ff}.${res}.sh
         chmod 755 ${fb}.${ff}.${res}.sh
 	msg; rm_all
 	#./${fb}.${ff}.${res}.sh
-   elif [[ $# == 4 && $res == "nhrestart" && $fe == "pdb" ]]; then
+   elif [[ $# == 5 && $res == "nhrestart" && $fe == "pdb" ]]; then
         mkdir -p ${fb}_${ff}; cp $fle ${wd}/; cd $wd
         make_params; prep_all
         echo -e "#!/usr/bin/env bash\nmdr=\"mpirun -np 2 gmx mdrun\"" > ${fb}.${ff}.${res}.sh
@@ -457,13 +459,13 @@ function rm_all() {
         chmod 755 ${fb}.${ff}.${res}.sh
 	msg; rm_all
         #./${fb}.${ff}.${res}.sh
-   elif [[ $# == 4 && $res == "hpc" && $fe == "pdb" ]]; then
+   elif [[ $# == 5 && $res == "hpc" && $fe == "pdb" ]]; then
 	mkdir -p ${fb}_${ff}; cp $fle ${wd}/; cd ${wd}
         make_params; prep_all
         cat qsub_prep em_md analysis plot > ${fb}.${ff}.${res}.qsub
 	msg; rm_all
         #qsub ${fb}.${ff}.${res}.qsub
-   elif [[ $# == 4 && $res == "hrestart" && $fe == "pdb" ]]; then
+   elif [[ $# == 5 && $res == "hrestart" && $fe == "pdb" ]]; then
         mkdir -p ${fb}_${ff}; cp $fle ${wd}/; cd ${wd}
         make_params; prep_all
         cat qsub_prep hrestart analysis plot > ${fb}.${ff}.${res}.qsub
