@@ -277,7 +277,7 @@ grep -v \"HOH\" $f > $fc
 gmx pdb2gmx -f $fc -o $fp -water $mdel -ignh -ff $ff	 # AMBER99SB ff #ignh: ignore H atoms in PDB file
 
 # Define unit cell & add solvent
-gmx editconf -f $fp -o $fn -c -d 1.0 -bt dodecahedron
+gmx editconf -f $fp -o $fn -c -d 1.0 -bt cubic
 gmx solvate -cp $fn -cs spc216.gro -o $fs -p topol.top
 gmx grompp -f ions.mdp -c $fs -p topol.top -o ions.tpr
 echo 13 | gmx genion -s ions.tpr -o $fsi -p topol.top -pname NA -nname CL -neutral
@@ -314,7 +314,7 @@ grep -v \"HOH\" $f > $fc
 gmx_mpi pdb2gmx -f $fc -o $fp -water $mdel -ignh -ff $ff  # AMBER99SB ff
 
 # Define unit cell & add solvent
-gmx_mpi editconf -f $fp -o $fn -c -d 1.0 -bt dodecahedron
+gmx_mpi editconf -f $fp -o $fn -c -d 1.0 -bt cubic
 gmx_mpi solvate -cp $fn -cs spc216.gro -o $fs -p topol.top
 gmx_mpi grompp -f ions.mdp -c $fs -p topol.top -o ions.tpr
 echo 13 | gmx_mpi genion -s ions.tpr -o $fsi -p topol.top -pname NA -nname CL -neutral
