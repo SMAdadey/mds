@@ -403,7 +403,7 @@ function rm_all() {
 
    if [[ $# != 5 ]]; then
       echo """
-      Usage: gromMDS <[hpc | hrestart | nhpc | nrestart]> <pdb-file> <force-field> <nsteps> <water-model>
+      Usage: gromMDS <[hpc|hrestart|nhpc|nrestart]> <pdb-file> <force-field> <nsteps> <water-model>
              
              hpc                : Run MDS on HPC
              hrestart           : Restart MDS on HPC
@@ -450,7 +450,7 @@ function rm_all() {
         make_params; prep_all
         cat nem_md analysis plot | sed 's/gmx_mpi/gmx/g' > ${fb}.${ff}.${res}.sh
         chmod 755 ${fb}.${ff}.${res}.sh
-	msg; rm_all
+	msg; #rm_all
 	#./${fb}.${ff}.${res}.sh
    elif [[ $# == 5 && $res == "nhrestart" && $fe == "pdb" ]]; then
         mkdir -p ${fb}_${ff}; cp $fle ${wd}/; cd $wd
@@ -458,19 +458,19 @@ function rm_all() {
         echo -e "#!/usr/bin/env bash\nmdr=\"mpirun -np 2 gmx mdrun\"" > ${fb}.${ff}.${res}.sh
         cat nhrestart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.${ff}.${res}.sh
         chmod 755 ${fb}.${ff}.${res}.sh
-	msg; rm_all
+	msg; #rm_all
         #./${fb}.${ff}.${res}.sh
    elif [[ $# == 5 && $res == "hpc" && $fe == "pdb" ]]; then
 	mkdir -p ${fb}_${ff}; cp $fle ${wd}/; cd ${wd}
         make_params; prep_all
         cat qsub_prep em_md analysis plot > ${fb}.${ff}.${res}.qsub
-	msg; rm_all
+	msg; #rm_all
         #qsub ${fb}.${ff}.${res}.qsub
    elif [[ $# == 5 && $res == "hrestart" && $fe == "pdb" ]]; then
         mkdir -p ${fb}_${ff}; cp $fle ${wd}/; cd ${wd}
         make_params; prep_all
         cat qsub_prep hrestart analysis plot > ${fb}.${ff}.${res}.qsub
-	msg; rm_all
+	msg; #rm_all
         #qsub ${fb}.${ff}.${res}.qsub
    fi
 
