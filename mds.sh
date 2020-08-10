@@ -266,7 +266,8 @@ cd ${wd}
 #mpirun -np \${NP} -machinefile \${PBS_NODEFILE} \${mdr} \${ARGS}""" > qsub_prep
 }
 
-function nem_md() {
+function em() {
+if [[ "$res" == "nhpc" ]]; then
 echo -e """#!/usr/bin/env bash
 
 # Remove water molecules (crystal)
@@ -302,11 +303,9 @@ echo -e \"Density\\\n0\" | gmx energy -f npt.edr -o $Ed
 grep -v -e \"#\" -e \"@\" $Ed > $Edt
 
 # Run Production MD
-gmx grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_0_1.tpr
-mpirun -np 1 gmx mdrun -v -deffnm md_0_1""" > nem_md
-}
-
-function em_md() {
+#gmx grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_0_1.tpr
+#mpirun -np 1 gmx mdrun -v -deffnm md_0_1"""
+else
 echo -e """
 # Remove water molecules (crystal)
 grep -v \"HOH\" $f > $fc
@@ -338,11 +337,22 @@ time \${mdr} -v -maxh 95 -ntomp \${NP} -deffnm npt #gmx mdrun
 echo -e \"Pressure\\\n0\" | gmx_mpi energy -f npt.edr -o $Epr
 grep -v -e \"#\" -e \"@\" $Epr > $Eprt
 echo -e \"Density\\\n0\" | gmx_mpi energy -f npt.edr -o $Ed
-grep -v -e \"#\" -e \"@\" $Ed > $Edt
+grep -v -e \"#\" -e \"@\" $Ed > $Edt"""
+fi > em
+}
 
+function md() {
+if [[ "$res" == "hpc" ]]; then
+echo -e """
 # Run Production MD
 gmx_mpi grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_0_1.tpr
-time \${mdr} -v -maxh 95 -ntomp \${NP} -deffnm md_0_1 #gmx mdrun """ > em_md
+time \${mdr} -v -maxh 95 -ntomp \${NP} -deffnm md_0_1 #gmx mdrun"""
+else
+echo -e """
+# Run Production MD
+gmx_mpi grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md_0_1.tpr
+mpirun -np 1 gmx mdrun -v -deffnm md_0_1"""
+fi > md
 }
 
 function analysis() {
@@ -365,19 +375,19 @@ grep -v -e \"#\" -e \"@\" ramachan.xvg > ramachan.txt""" > analysis
 function plot() {
 echo -e """
 # Generate plots
-Rscript ${HOME}/Git/mds/mds_plot.R $Epet $Ett $Eprt $Edt rmsd.txt rmsd_xtal.txt gyrate.txt gyrate.txt""" > plot
+Rscript ${HOME}/Git/mds/mds_plot.R $Epet $Ett $Eprt $Edt rmsd.txt rmsd_xtal.txt gyrate.txt gyrate.txt ramachan.txt ramachan.txt""" > plot
 }
 
-function nhrestart() {
+function rstart() {
+if [[ "$res" == "nhrestart" ]]; then
 echo -e """
 # Restart Production MD
-mpirun -np 1 gmx mdrun -v -cpi md_0_1""" > nhrestart
-}
-
-function hrestart() {
+mpirun -np 1 gmx mdrun -v -cpi md_0_1"""
+else
 echo -e """
 # Restart Production MD
-time \${mdr} -s md_0_1 -v -maxh 95 -ntomp \${NP} -cpi md_0_1 #gmx mdrun""" > hrestart
+time \${mdr} -s md_0_1 -v -maxh 95 -ntomp \${NP} -cpi md_0_1 #gmx mdrun"""
+fi > rstart
 }
 
 function msg() {
@@ -394,12 +404,27 @@ function msg() {
 }
 
 function prep_all() {
-      chmod 755 qsub_prep nem_md em_md nhrestart hrestart analysis plot	
-      qsub_prep; nem_md; em_md; nhrestart; hrestart; analysis; plot
+      if [[ "$res" == "hpc" ]]; then qsub_prep; fi
+      em; md; analysis; plot
+      if [[ "$res" == "hpc" ]]; then chmod 755 qsub_prep; fi
+      chmod 755 em md analysis plot
 }
 
 function rm_all() {
-      rm qsub_prep em_md nem_md nhrestart hrestart analysis plot
+      if [[ "$res" == "hpc" ]]; then rm qsub_prep; fi 
+      rm em md analysis plot
+}
+
+function prep_rst() {
+      if [[ "$res" == "hrestart" ]]; then qsub_prep; fi
+      rstart; analysis; plot
+      if [[ "$res" == "hrestart" ]]; then chmod 755 qsub_prep; fi
+      chmod 755 rstart analysis plot
+}
+
+function rm_rst() {
+      if [[ "$res" == "hrestart" ]]; then rm qsub_prep; fi
+      rm rstart analysis plot
 }
 
    if [[ $# != 5 ]]; then
@@ -449,29 +474,29 @@ function rm_all() {
    elif [[ $# == 5 && $res == "nhpc" && $fe == "pdb" ]]; then
 	mkdir -p ${fb}_${ff}_${mdel}; cp $fle ${wd}/; cd $wd
         make_params; prep_all
-        cat nem_md analysis plot | sed 's/gmx_mpi/gmx/g' > ${fb}.${ff}.${res}.sh
+        cat em md analysis plot | sed 's/gmx_mpi/gmx/g' > ${fb}.${ff}.${res}.sh
         chmod 755 ${fb}.${ff}.${res}.sh
 	msg; #rm_all
 	#./${fb}.${ff}.${res}.sh
    elif [[ $# == 5 && $res == "nhrestart" && $fe == "pdb" ]]; then
         mkdir -p ${fb}_${ff}_${mdel}; cp $fle ${wd}/; cd $wd
-        make_params; prep_all
+        make_params; prep_rst
         echo -e "#!/usr/bin/env bash\nmdr=\"mpirun -np 2 gmx mdrun\"" > ${fb}.${ff}.${res}.sh
-        cat nhrestart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.${ff}.${res}.sh
+        cat rstart analysis plot | sed 's/gmx_mpi/gmx/g' >> ${fb}.${ff}.${res}.sh
         chmod 755 ${fb}.${ff}.${res}.sh
-	msg; #rm_all
+	msg; #rm_rst
         #./${fb}.${ff}.${res}.sh
    elif [[ $# == 5 && $res == "hpc" && $fe == "pdb" ]]; then
 	mkdir -p ${fb}_${ff}_${mdel}; cp $fle ${wd}/; cd ${wd}
         make_params; prep_all
-        cat qsub_prep em_md analysis plot > ${fb}.${ff}.${res}.qsub
+        cat qsub_prep em md analysis plot > ${fb}.${ff}.${res}.qsub
 	msg; #rm_all
         #qsub ${fb}.${ff}.${res}.qsub
    elif [[ $# == 5 && $res == "hrestart" && $fe == "pdb" ]]; then
         mkdir -p ${fb}_${ff}_${mdel}; cp $fle ${wd}/; cd ${wd}
-        make_params; prep_all
-        cat qsub_prep hrestart analysis plot > ${fb}.${ff}.${res}.qsub
-	msg; #rm_all
+        make_params; prep_rst
+        cat qsub_prep rstart analysis plot > ${fb}.${ff}.${res}.qsub
+	msg; #rm_rst
         #qsub ${fb}.${ff}.${res}.qsub
    fi
 
