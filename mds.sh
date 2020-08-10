@@ -358,7 +358,8 @@ grep -v -e \"#\" -e \"@\" rmsd_xtal.xvg > rmsd_xtal.txt
 echo 1 | gmx_mpi gyrate -s md_0_1.tpr -f md_0_1_noPBC.xtc -o gyrate.xvg
 grep -v -e \"#\" -e \"@\" gyrate.xvg > gyrate.txt
 
-#gmx_mpi rama -f em.gro -s em.tpr -o ramachan.xvg # Ramachandran Plot for crystal struct""" > analysis
+gmx_mpi rama -f em.gro -s em.tpr -o ramachan.xvg # Ramachandran Plot for crystal struct""" > analysis
+grep -v -e \"#\" -e \"@\" ramachan.xvg > ramachan.txt
 }
 
 function plot() {
