@@ -358,8 +358,8 @@ grep -v -e \"#\" -e \"@\" rmsd_xtal.xvg > rmsd_xtal.txt
 echo 1 | gmx_mpi gyrate -s md_0_1.tpr -f md_0_1_noPBC.xtc -o gyrate.xvg
 grep -v -e \"#\" -e \"@\" gyrate.xvg > gyrate.txt
 
-gmx_mpi rama -f em.gro -s em.tpr -o ramachan.xvg # Ramachandran Plot for crystal struct""" > analysis
-grep -v -e \"#\" -e \"@\" ramachan.xvg > ramachan.txt
+gmx_mpi rama -f em.gro -s em.tpr -o ramachan.xvg # Ramachandran Plot for crystal struct
+grep -v -e \"#\" -e \"@\" ramachan.xvg > ramachan.txt""" > analysis
 }
 
 function plot() {
@@ -387,13 +387,14 @@ function msg() {
           sleep 1
           echo -e "Gromacs job created: '${fb}.${ff}.${res}.qsub' Please submit with 'qsub ${fb}.${ff}.${res}.qsub'\n"
       else
-          echo -e "\nMolecular Dynamics Parameter (mdp) files created in ${fb}_${ff}"
+          echo -e "\nMolecular Dynamics Parameter (mdp) files created in ${fb}_${ff}_${mdel}"
           sleep 1
-          echo -e "Gromacs job created: '${fb}.${ff}.${res}.sh' currently in ${fb}_${ff}/ Please run with './${fb}.${ff}.${res}.sh'\n"
+          echo -e "Gromacs job created: '${fb}.${ff}.${res}.sh' currently in ${fb}_${ff}_${mdel}/ Please run with './${fb}.${ff}.${res}.sh'\n"
       fi
 }
 
-function prep_all() { 
+function prep_all() {
+      chmod 755 qsub_prep nem_md em_md nhrestart hrestart analysis plot	
       qsub_prep; nem_md; em_md; nhrestart; hrestart; analysis; plot
 }
 
